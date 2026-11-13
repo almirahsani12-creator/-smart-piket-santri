@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Piket Santri - Dashboard Kebersihan</title>
+    
+    <!-- Memuat Tailwind CSS untuk styling cepat dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Memuat Font Inter dari Google Fonts agar tulisan rapi dan modern -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Memuat Phosphor Icons untuk ikon-ikon aplikasi yang menarik -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Konfigurasi Warna Kustom Tailwind agar sesuai dengan tema Dark Blue Dashboard -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#161822',       // Latar belakang utama gelap
+                        cardBg: '#1F2232',       // Latar belakang kartu
+                        cardHover: '#282C40',    // Warna kartu saat disentuh/hover
+                        primaryBlue: '#4B6BFB',  // Biru utama (aksen)
+                        softBlue: '#3B52C4',     // Biru lembut
+                        accentGreen: '#10B981',  // Hijau untuk status selesai
+                        accentOrange: '#F59E0B', // Oranye untuk status belum selesai
+                        accentPink: '#EC4899'    // Pink untuk variasi grafik
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-darkBg text-slate-200 font-sans min-h-screen flex flex-col md:flex-row selection:bg-primaryBlue selection:text-white">
+
+    <!-- =====================================================================
+         1. SIDEBAR NAVIGASI (Kiri pada Desktop, Atas pada Mobile)
+         ===================================================================== -->
+    <aside class="bg-primaryBlue text-white md:w-24 lg:w-64 flex-shrink-0 flex md:flex-col justify-between items-center p-4 md:py-8 md:rounded-r-3xl shadow-xl z-10">
+        <!-- Logo & Nama Aplikasi -->
+        <div class="flex items-center gap-3">
+            <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm">
+                <i class="ph-fill ph-sparkle text-2xl text-white"></i>
+            </div>
+            <div class="md:hidden lg:block">
+                <h1 class="font-bold text-lg leading-tight tracking-wide">Smart Piket</h1>
+                <p class="text-xs text-blue-200 font-medium">Santri Bersih & Rapi</p>
+            </div>
+        </div>
+
+        <!-- Menu Navigasi Hari (Senin - Jumat) versi Sidebar -->
+        <nav class="hidden md:flex flex-col gap-3 w-full my-auto px-2" id="sidebar-nav">
+            <p class="text-xs uppercase tracking-wider text-blue-200 font-semibold px-3 mb-1 md:hidden lg:block">Pilih Hari</p>
+            <!-- Tombol hari akan diisi otomatis melalui JavaScript -->
+        </nav>
+
+        <!-- Info Footer Sidebar -->
+        <div class="hidden lg:block bg-softBlue/60 p-4 rounded-2xl w-full text-center border border-white/10">
+            <p class="text-xs text-blue-100 mb-1">"Kebersihan sebagian dari iman"</p>
+            <span class="text-[11px] bg-white/20 px-2.5 py-0.5 rounded-full font-medium">SMA IT Kelas X</span>
+        </div>
+    </aside>
+
+    <!-- =====================================================================
+         2. KONTEN UTAMA DASHBOARD
+         ===================================================================== -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full flex flex-col gap-6">
+        
+        <!-- Header Atas: Judul Halaman & Tombol Reset -->
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-white">Dashboard Piket Harian</h2>
+                <p class="text-slate-400 text-sm mt-1">Pantau dan tandai tugas kebersihan santri setiap hari.</p>
+            </div>
+            
+            <!-- Fitur (5): Tombol Reset Checklist -->
+            <button id="btn-reset" class="flex items-center justify-center gap-2 bg-cardBg hover:bg-rose-600/20 text-rose-400 hover:text-rose-300 border border-rose-500/30 px-4 py-2.5 rounded-2xl font-medium text-sm transition-all duration-200 cursor-pointer active:scale-95 shadow-sm">
+                <i class="ph ph-arrows-counter-clockwise text-lg"></i>
+                <span>Reset Checklist Hari Ini</span>
+            </button>
+        </header>
+
+        <!-- Grid Layout Utama: Kolom Kiri (Utama) & Kolom Kanan (Info Kelompok & Kalendar) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- KOLOM KIRI (8 Kolom pada layar besar) -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                
+                <!-- Banner Sambutan (Terinspirasi dari Banner Biru pada Referensi) -->
+                <div class="bg-gradient-to-r from-primaryBlue to-indigo-600 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="z-10">
+                        <span id="badge-hari-ini" class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                            <i class="ph ph-calendar-blank"></i> Jadwal Hari Senin
+                        </span>
+                        <h3 class="text-2xl sm:text-3xl font-bold mb-1">Assalamu'alaikum, Santri!</h3>
+                        <p class="text-blue-100 text-sm sm:text-base max-w-md">
+                            Mari jaga kebersihan lingkungan pondok dan sekolah agar belajar menjadi lebih nyaman dan berkah.
+                        </p>
+                    </div>
+                    
+                    <!-- Ilustrasi Ikon Besar -->
+                    <div class="bg-white/15 p-4 rounded-3xl backdrop-blur-sm z-10 self-end sm:self-center">
+                        <i class="ph-duotone ph-broom text-5xl sm:text-6xl text-white"></i>
+                    </div>
+
+                    <!-- Dekorasi Lingkaran Latar -->
+                    <div class="w-48 h-48 bg-white/10 rounded-full absolute -right-10 -bottom-16 pointer-events-none"></div>
+                    <div class="w-24 h-24 bg-white/10 rounded-full absolute right-32 -top-10 pointer-events-none"></div>
+                </div>
+
+                <!-- Fitur (4): Kartu Statistik (Jumlah Tugas Selesai, Belum Selesai, & Persentase) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Kartu Total Tugas -->
+                    <div class="bg-cardBg p-5 rounded-3xl border border-slate-800/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Tugas</p>
+                            <h4 id="stat-total" class="text-3xl font-bold text-white mt-1">0</h4>
+                            <span class="text-xs text-blue-400 mt-1 inline-block">Target Harian</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-primaryBlue/20 text-primaryBlue flex items-center justify-center text-2xl">
+                            <i class="ph-fill ph-list-checks"></i>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Tugas Selesai -->
+                    <div class="bg-cardBg p-5 rounded-3xl border border-slate-800/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tugas Selesai</p>
+                            <h4 id="stat-selesai" class="text-3xl font-bold text-accentGreen mt-1">0</h4>
+                            <span class="text-xs text-emerald-400/80 mt-1 inline-block">Sudah Dikerjakan</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-accentGreen/20 text-accentGreen flex items-center justify-center text-2xl">
+                            <i class="ph-fill ph-check-circle"></i>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Belum Selesai -->
+                    <div class="bg-cardBg p-5 rounded-3xl border border-slate-800/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Belum Selesai</p>
+                            <h4 id="stat-belum" class="text-3xl font-bold text-accentOrange mt-1">0</h4>
+                            <span class="text-xs text-amber-400/80 mt-1 inline-block">Perlu Dikerjakan</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-accentOrange/20 text-accentOrange flex items-center justify-center text-2xl">
+                            <i class="ph-fill ph-clock-countdown"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fitur (3): Daftar Checklist Tugas Piket -->
+                <div class="bg-cardBg rounded-3xl p-6 border border-slate-800/80 shadow-md">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+                        <div>
+                            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="ph-fill ph-clipboard-text text-primaryBlue text-xl"></i>
+                                Daftar Checklist Tugas Piket
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Klik pada kotak tugas untuk menandai selesai atau belum.</p>
+                        </div>
+                        
+                        <!-- Progress Bar Persentase -->
+                        <div class="flex items-center gap-3 bg-darkBg px-3.5 py-2 rounded-2xl border border-slate-800">
+                            <span class="text-xs font-medium text-slate-300">Progres:</span>
+                            <div class="w-24 bg-slate-700 h-2 rounded-full overflow-hidden">
+                                <div id="progress-bar" class="bg-accentGreen h-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <span id="progress-text" class="text-xs font-bold text-accentGreen">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Container List Tugas (Diisi oleh JavaScript) -->
+                    <div id="checklist-container" class="flex flex-col gap-3">
+                        <!-- Item checklist akan muncul di sini -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- KOLOM KANAN (4 Kolom pada layar besar: Jadwal Senin-Jumat & Info Kelompok/Lokasi) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Fitur (1): Pemilih Jadwal Hari Senin - Jumat (Gaya Kalender Referensi) -->
+                <div class="bg-cardBg rounded-3xl p-6 border border-slate-800/80 shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-white text-base">Jadwal Piket Mingguan</h3>
+                        <span class="text-xs bg-primaryBlue/20 text-primaryBlue font-semibold px-3 py-1 rounded-full">Senin - Jumat</span>
+                    </div>
+                    
+                    <!-- Tombol Pilihan Hari Senin - Jumat -->
+                    <div id="day-selector" class="grid grid-cols-5 gap-2">
+                        <!-- Tombol Senin, Selasa, Rabu, Kamis, Jumat dirender via JS -->
+                    </div>
+                </div>
+
+                <!-- Fitur (2): Kartu Nama Kelompok, Anggota & Lokasi Piket -->
+                <div class="bg-cardBg rounded-3xl overflow-hidden border border-slate-800/80 shadow-md">
+                    <!-- Header Kartu Biru -->
+                    <div class="bg-primaryBlue p-5 text-white flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-blue-200 uppercase font-semibold tracking-wider">Kelompok Bertugas</p>
+                            <h3 id="info-kelompok" class="text-xl font-bold mt-0.5">Kelompok Al-Farabi</h3>
+                        </div>
+                        <div class="bg-white/20 p-2.5 rounded-2xl">
+                            <i class="ph-fill ph-users-three text-2xl"></i>
+                        </div>
+                    </div>
+
+                    <!-- Isi Kartu: Lokasi & Daftar Santri -->
+                    <div class="p-6 flex flex-col gap-5">
+                        <!-- Lokasi Piket -->
+                        <div class="bg-darkBg p-4 rounded-2xl border border-slate-800 flex items-start gap-3.5">
+                            <div class="bg-pink-500/20 text-accentPink p-2.5 rounded-xl mt-0.5">
+                                <i class="ph-fill ph-map-pin text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400 font-medium">Lokasi Area Piket</p>
+                                <h4 id="info-lokasi" class="text-base font-bold text-white mt-0.5">Masjid & Teras Utama</h4>
+                                <p id="info-waktu" class="text-xs text-slate-400 mt-1">Waktu: 06.30 WIB & 15.30 WIB</p>
+                            </div>
+                        </div>
+
+                        <!-- Daftar Anggota Santri -->
+                        <div>
+                            <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-3 flex items-center justify-between">
+                                <span>Anggota Santri</span>
+                                <span id="info-jumlah-anggota" class="text-primaryBlue">4 Santri</span>
+                            </p>
+                            <ul id="info-anggota-list" class="flex flex-col gap-2.5">
+                                <!-- Daftar anggota diisi lewat JavaScript -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- =====================================================================
+         3. MODAL KONFIRMASI RESET & NOTIFIKASI TOAST (Pengganti alert/confirm)
+         ===================================================================== -->
+    <!-- Modal Konfirmasi Reset -->
+    <div id="reset-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-cardBg border border-slate-700 rounded-3xl p-6 max-w-sm w-full shadow-2xl transform transition-all">
+            <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl mb-4">
+                <i class="ph-fill ph-warning-circle"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Reset Checklist Hari Ini?</h3>
+            <p class="text-sm text-slate-400 mt-1.5">
+                Semua tanda centang pada hari <span id="modal-hari-nama" class="text-white font-semibold">Senin</span> akan dikembalikan menjadi belum selesai.
+            </p>
+            <div class="flex items-center gap-3 mt-6">
+                <button id="btn-batal-reset" class="flex-1 py-2.5 px-4 rounded-2xl bg-darkBg hover:bg-slate-800 text-slate-300 font-medium text-sm transition cursor-pointer">
+                    Batal
+                </button>
+                <button id="btn-konfirmasi-reset" class="flex-1 py-2.5 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-sm transition cursor-pointer">
+                    Ya, Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifikasi Toast Kecil di Pojok Kanan Bawah -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-sm font-medium transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <i class="ph-fill ph-check-circle text-lg"></i>
+        <span id="toast-message">Status berhasil diperbarui!</span>
+    </div>
+
+    <!-- =====================================================================
+         4. KODE JAVASCRIPT (Logika Aplikasi & Data Contoh)
+         ===================================================================== -->
+    <script>
+        /**
+         * DATA CONTOH JADWAL PIKET SANTRI (SENIN - JUMAT)
+         * Disimpan dalam bentuk Objek JavaScript agar mudah dibaca dan diubah.
+         */
+        const dataPiket = {
+            Senin: {
+                singkatan: "Sen",
+                tanggal: "1",
+                kelompok: "Kelompok Al-Khawarizmi",
+                lokasi: "Ruang Kelas X-A & Koridor Depan",
+                waktu: "Pukul 06.30 & 15.30 WIB",
+                anggota: [
+                    { nama: "Ahmad Fauzan", peran: "Ketua Kelompok" },
+                    { nama: "Budi Santoso", peran: "Anggota" },
+                    { nama: "Chandra Wijaya", peran: "Anggota" },
+                    { nama: "Dimas Pratama", peran: "Anggota" }
+                ],
+                tugas: [
+                    { id: 101, teks: "Menyapu lantai ruang kelas hingga bersih", selesai: true },
+                    { id: 102, teks: "Menghapus papan tulis & merapikan spidol", selesai: true },
+                    { id: 103, teks: "Meluruskan barisan meja dan kursi santri", selesai: false },
+                    { id: 104, teks: "Membuang sampah kelas ke tempat pembuangan utama", selesai: false }
+                ]
+            },
+            Selasa: {
+                singkatan: "Sel",
+                tanggal: "2",
+                kelompok: "Kelompok Ibnu Sina",
+                lokasi: "Masjid Al-Ikhlas & Tempat Wudhu",
+                waktu: "Sebelum Dzuhur & Ba'da Ashar",
+                anggota: [
+                    { nama: "Eko Saputra", peran: "Ketua Kelompok" },
+                    { nama: "Farhan Ramadhan", peran: "Anggota" },
+                    { nama: "Gilang Permana", peran: "Anggota" },
+                    { nama: "Hafizh Al-Qur'ani", peran: "Anggota" }
+                ],
+                tugas: [
+                    { id: 201, teks: "Menyedot debu (vacuum) karpet shaf depan", selesai: true },
+                    { id: 202, teks: "Merapikan mukena, sarung, dan rak Al-Qur'an", selesai: false },
+                    { id: 203, teks: "Menyikat lantai tempat wudhu agar tidak licin", selesai: false },
+                    { id: 204, teks: "Menata sandal santri di rak luar masjid", selesai: false }
+                ]
+            },
+            Rabu: {
+                singkatan: "Rab",
+                tanggal: "3",
+                kelompok: "Kelompok Al-Farabi",
+                lokasi: "Asrama Putra Lantai 1 & Teras",
+                waktu: "Pukul 06.00 & 16.00 WIB",
+                anggota: [
+                    { nama: "Ilham Maulana", peran: "Ketua Kelompok" },
+                    { nama: "Joko Susilo", peran: "Anggota" },
+                    { nama: "Kurniawan Adi", peran: "Anggota" },
+                    { nama: "Lukman Hakim", peran: "Anggota" }
+                ],
+                tugas: [
+                    { id: 301, teks: "Menyapu dan mengepel lorong asrama", selesai: true },
+                    { id: 302, teks: "Memastikan jemuran handuk tertata rapi", selesai: true },
+                    { id: 303, teks: "Membersihkan kaca jendela kamar asrama", selesai: true },
+                    { id: 304, teks: "Mengosongkan tempat sampah di depan kamar", selesai: false }
+                ]
+            },
+            Kamis: {
+                singkatan: "Kam",
+                tanggal: "4",
+                kelompok: "Kelompok Ibnu Khaldun",
+                lokasi: "Perpustakaan & Lab Komputer",
+                waktu: "Pukul 14.30 WIB (Pulang Sekolah)",
+                anggota: [
+                    { nama: "Muhammad Rizki", peran: "Ketua Kelompok" },
+                    { nama: "Naufal Azmi", peran: "Anggota" },
+                    { nama: "Oki Setiawan", peran: "Anggota" },
+                    { nama: "Putra Ramadhan", peran: "Anggota" }
+                ],
+                tugas: [
+                    { id: 401, teks: "Mengembalikan buku ke rak sesuai kategori", selesai: false },
+                    { id: 402, teks: "Memastikan semua komputer & AC sudah dimatikan", selesai: false },
+                    { id: 403, teks: "Membersihkan meja baca dari debu", selesai: false },
+                    { id: 404, teks: "Menyapu lantai ruangan perpustakaan", selesai: false }
+                ]
+            },
+            Jumat: {
+                singkatan: "Jum",
+                tanggal: "5",
+                kelompok: "Kelompok Al-Ghazali",
+                lokasi: "Halaman Utama, Taman & Kantin Sehat",
+                waktu: "Pukul 07.00 WIB (Jumat Bersih)",
+                anggota: [
+                    { nama: "Qori Abdurrahman", peran: "Ketua Kelompok" },
+                    { nama: "Rafi Ahmad", peran: "Anggota" },
+                    { nama: "Syahid Hidayat", peran: "Anggota" },
+                    { nama: "Tariq Ziyad", peran: "Anggota" }
+                ],
+                tugas: [
+                    { id: 501, teks: "Menyapu daun kering di halaman dan taman", selesai: true },
+                    { id: 502, teks: "Menyiram tanaman hias di depan asrama", selesai: false },
+                    { id: 503, teks: "Membersihkan meja dan kursi area kantin", selesai: false },
+                    { id: 504, teks: "Memilah sampah organik dan anorganik", selesai: false }
+                ]
+            }
+        };
+
+        // Variabel untuk menyimpan hari yang sedang dipilih pengguna (Default: Senin)
+        let hariAktif = "Senin";
+
+        // Daftar urutan hari
+        const daftarHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+
+        /**
+         * FUNGSI 1: Merender Tombol Pilihan Hari (di Sidebar & Kartu Jadwal Mingguan)
+         */
+        function renderPemilihHari() {
+            const daySelector = document.getElementById("day-selector");
+            const sidebarNav = document.getElementById("sidebar-nav");
+            
+            // Bersihkan isi sebelumnya
+            daySelector.innerHTML = "";
+            // Sisakan judul kecil di sidebar
+            sidebarNav.innerHTML = `<p class="text-xs uppercase tracking-wider text-blue-200 font-semibold px-3 mb-1 md:hidden lg:block">Jadwal Hari</p>`;
+
+            daftarHari.forEach((hari) => {
+                const isSelected = hari === hariAktif;
+                const info = dataPiket[hari];
+
+                // 1. Tombol di Kartu Jadwal Mingguan (Kanan)
+                const btnCard = document.createElement("button");
+                btnCard.className = `flex flex-col items-center justify-center py-3 px-1 rounded-2xl font-semibold transition-all duration-200 cursor-pointer ${
+                    isSelected 
+                    ? "bg-primaryBlue text-white shadow-lg shadow-primaryBlue/30 scale-105" 
+                    : "bg-darkBg text-slate-400 hover:bg-cardHover hover:text-white border border-slate-800"
+                }`;
+                btnCard.innerHTML = `
+                    <span class="text-[11px] uppercase opacity-80">${info.singkatan}</span>
+                    <span class="text-base font-bold mt-1">${info.tanggal}</span>
+                `;
+                btnCard.onclick = () => gantiHari(hari);
+                daySelector.appendChild(btnCard);
+
+                // 2. Tombol di Sidebar (Kiri)
+                const btnSide = document.createElement("button");
+                btnSide.className = `flex items-center gap-3 w-full px-3.5 py-3 rounded-2xl font-medium text-sm transition-all duration-200 cursor-pointer ${
+                    isSelected 
+                    ? "bg-white text-primaryBlue font-bold shadow-md" 
+                    : "text-blue-100 hover:bg-white/10"
+                }`;
+                btnSide.innerHTML = `
+                    <i class="ph-fill ph-calendar-check text-lg"></i>
+                    <span class="md:hidden lg:inline">${hari}</span>
+                `;
+                btnSide.onclick = () => gantiHari(hari);
+                sidebarNav.appendChild(btnSide);
+            });
+        }
+
+        /**
+         * FUNGSI 2: Mengganti Hari Aktif dan Memperbarui Seluruh Tampilan
+         */
+        function gantiHari(hariBaru) {
+            hariAktif = hariBaru;
+            updateTampilan();
+        }
+
+        /**
+         * FUNGSI 3: Memperbarui Seluruh Data di Layar (Info Kelompok, Statistik, & Checklist)
+         */
+        function updateTampilan() {
+            const data = dataPiket[hariAktif];
+
+            // 1. Update Badge Hari di Banner
+            document.getElementById("badge-hari-ini").innerHTML = `<i class="ph ph-calendar-blank"></i> Jadwal Hari ${hariAktif}`;
+
+            // 2. Update Info Kelompok & Lokasi Piket (Fitur 2)
+            document.getElementById("info-kelompok").textContent = data.kelompok;
+            document.getElementById("info-lokasi").textContent = data.lokasi;
+            document.getElementById("info-waktu").textContent = data.waktu;
+            document.getElementById("info-jumlah-anggota").textContent = `${data.anggota.length} Santri`;
+
+            // Render Daftar Anggota Santri
+            const listAnggota = document.getElementById("info-anggota-list");
+            listAnggota.innerHTML = "";
+            data.anggota.forEach((santri) => {
+                // Ambil inisial nama untuk avatar bulat
+                const inisial = santri.nama.split(" ").map(n => n[0]).join("").substring(0, 2);
+                const li = document.createElement("li");
+                li.className = "flex items-center justify-between bg-darkBg/60 px-3.5 py-2.5 rounded-2xl border border-slate-800/60";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-primaryBlue/20 text-primaryBlue font-bold text-xs flex items-center justify-center">
+                            ${inisial}
+                        </div>
+                        <span class="text-sm font-medium text-slate-200">${santri.nama}</span>
+                    </div>
+                    <span class="text-[11px] px-2.5 py-0.5 rounded-full ${
+                        santri.peran === 'Ketua Kelompok' 
+                        ? 'bg-amber-500/20 text-amber-400 font-semibold' 
+                        : 'bg-slate-800 text-slate-400'
+                    }">${santri.peran}</span>
+                `;
+                listAnggota.appendChild(li);
+            });
+
+            // 3. Render Checklist Tugas (Fitur 3)
+            const checklistContainer = document.getElementById("checklist-container");
+            checklistContainer.innerHTML = "";
+
+            data.tugas.forEach((item, index) => {
+                const taskCard = document.createElement("div");
+                taskCard.className = `flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 cursor-pointer select-none ${
+                    item.selesai 
+                    ? "bg-emerald-950/20 border-emerald-500/30 text-slate-400" 
+                    : "bg-darkBg border-slate-800 hover:border-primaryBlue/50 hover:bg-cardHover text-slate-200"
+                }`;
+                
+                // Saat kartu tugas diklik, ubah status selesai/belum
+                taskCard.onclick = () => toggleTugas(index);
+
+                taskCard.innerHTML = `
+                    <div class="flex items-center gap-3.5">
+                        <!-- Kotak Centang Kustom -->
+                        <div class="w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${
+                            item.selesai 
+                            ? "bg-accentGreen text-white" 
+                            : "border-2 border-slate-600 bg-cardBg"
+                        }">
+                            ${item.selesai ? '<i class="ph-bold ph-check text-sm"></i>' : ''}
+                        </div>
+                        
+                        <!-- Teks Tugas -->
+                        <span class="text-sm sm:text-base font-medium ${item.selesai ? 'line-through text-slate-500' : ''}">
+                            ${item.teks}
+                        </span>
+                    </div>
+
+                    <!-- Badge Status Kanan -->
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full hidden sm:inline-block ${
+                        item.selesai 
+                        ? "bg-accentGreen/20 text-accentGreen" 
+                        : "bg-amber-500/10 text-amber-400"
+                    }">
+                        ${item.selesai ? "Selesai" : "Belum"}
+                    </span>
+                `;
+                checklistContainer.appendChild(taskCard);
+            });
+
+            // 4. Hitung & Update Statistik Jumlah Tugas (Fitur 4)
+            updateStatistik(data.tugas);
+
+            // 5. Render ulang tombol hari agar highlight aktif selalu sinkron
+            renderPemilihHari();
+        }
+
+        /**
+         * FUNGSI 4: Mengubah Status Tugas (Selesai <-> Belum Selesai)
+         */
+        function toggleTugas(indexTugas) {
+            const tugas = dataPiket[hariAktif].tugas[indexTugas];
+            tugas.selesai = !tugas.selesai; // Membalik nilai true/false
+            
+            updateTampilan();
+            
+            if (tugas.selesai) {
+                tampilkanToast("Alhamdulillah, tugas ditandai selesai!");
+            }
+        }
+
+        /**
+         * FUNGSI 5: Menghitung Jumlah Tugas Selesai, Belum Selesai, & Persentase
+         */
+        function updateStatistik(daftarTugas) {
+            const total = daftarTugas.length;
+            const selesai = daftarTugas.filter(t => t.selesai === true).length;
+            const belum = total - selesai;
+            const persentase = total === 0 ? 0 : Math.round((selesai / total) * 100);
+
+            // Masukkan angka ke elemen HTML
+            document.getElementById("stat-total").textContent = total;
+            document.getElementById("stat-selesai").textContent = selesai;
+            document.getElementById("stat-belum").textContent = belum;
+
+            // Update Progress Bar
+            document.getElementById("progress-bar").style.width = `${persentase}%`;
+            document.getElementById("progress-text").textContent = `${persentase}%`;
+        }
+
+        /**
+         * FUNGSI 6: Mengatur Tombol & Modal Reset Checklist (Fitur 5)
+         */
+        const modalReset = document.getElementById("reset-modal");
+        const btnReset = document.getElementById("btn-reset");
+        const btnBatalReset = document.getElementById("btn-batal-reset");
+        const btnKonfirmasiReset = document.getElementById("btn-konfirmasi-reset");
+
+        // Buka modal saat tombol reset diklik
+        btnReset.onclick = () => {
+            document.getElementById("modal-hari-nama").textContent = hariAktif;
+            modalReset.classList.remove("hidden");
+            modalReset.classList.add("flex");
+        };
+
+        // Tutup modal saat batal
+        btnBatalReset.onclick = () => {
+            modalReset.classList.add("hidden");
+            modalReset.classList.remove("flex");
+        };
+
+        // Eksekusi reset semua tugas pada hari aktif menjadi false
+        btnKonfirmasiReset.onclick = () => {
+            dataPiket[hariAktif].tugas.forEach(tugas => {
+                tugas.selesai = false;
+            });
+            
+            modalReset.classList.add("hidden");
+            modalReset.classList.remove("flex");
+            
+            updateTampilan();
+            tampilkanToast(`Checklist hari ${hariAktif} berhasil direset!`);
+        };
+
+        /**
+         * FUNGSI 7: Menampilkan Notifikasi Toast Sementara
+         */
+        let toastTimeout;
+        function tampilkanToast(pesan) {
+            const toast = document.getElementById("toast");
+            document.getElementById("toast-message").textContent = pesan;
+            
+            toast.classList.remove("translate-y-20", "opacity-0");
+            
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add("translate-y-20", "opacity-0");
+            }, 2500);
+        }
+
+        // Jalankan aplikasi pertama kali saat halaman selesai dimuat
+        window.onload = () => {
+            updateTampilan();
+        };
+    </script>
+</body>
+</html>
